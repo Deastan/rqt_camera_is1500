@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rqt_camera_is1500</name>
+  <version>0.0.0</version>
+  <description>The tools package</description>
+
+  <maintainer email="joanthanburkhard@gmail.com">John</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>rospy</depend>
+  <depend>rqt_gui</depend>
+  <depend>rqt_gui_py</depend>
+
+  <exec_depend>python-rospkg</exec_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <rqt_gui plugin="${prefix}/plugin.xml"/>
+  </export>
+</package>

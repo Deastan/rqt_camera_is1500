@@ -1,0 +1,20 @@
+<library path="src">
+  <class name="AnyName_Widget" type="rqt_camera_is1500.rqt_camera_is1500_widget.Camera_is1500_Widget" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Python GUI widget for setting up new map.
+    </description>
+    <qtgui>
+      <group>
+        <label>ET</label>
+      </group>
+      <!-- optional grouping...
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>Camera settings</label>
+      <icon type="theme">system-help</icon>
+      <statustip>User interface for setting up a new map</statustip>
+    </qtgui>
+  </class>
+</library>

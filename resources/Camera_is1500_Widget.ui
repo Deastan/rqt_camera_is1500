@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Camera_is1500_Widget</class>
+ <widget class="QWidget" name="Waypoints">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>320</width>
+    <height>240</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Camera setup</string>
+  </property>
+  <layout class="QVBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+      <number>0</number>
+    </property>
+    <property name="margin">
+      <number>0</number>
+    </property>
+    <item> <!-- Map file selection -->
+      <layout class="QHBoxLayout" name="file_wp_layout">
+        <item>
+          <widget class="QLabel" name="file_name_label">
+            <property name="text">
+             <string>Map file</string>
+            </property>
+          </widget>
+        </item>
+        <item>
+          <widget class="QLineEdit" name="file_name_edit">
+            <property name="text">
+              <string></string>
+            </property>
+          </widget>
+        </item>
+        <item>
+          <widget class="QPushButton" name="file_name_button">
+            <property name="text">
+              <string>Open file</string>
+            </property>
+          </widget>
+        </item>
+        <item>
+          <widget class="QPushButton" name="save_file_button">
+            <property name="text">
+              <string>Save</string>
+            </property>
+          </widget>
+        </item>
+      </layout>
+    </item>
+    <item> <!-- Editing waypoints -->
+      <layout class="QHBoxLayout" name="add_wp_layout">
+        <item> <!-- marker_pub details -->
+          <layout class="QGridLayout" name="details_layout">
+            <item row="0" column="0">
+              <widget class="QLabel" name="x_label">
+                <property name="text">
+                 <string>Position UTM X: </string>
+                </property>
+              </widget>
+            </item>
+            <item  row="0" column="1">
+              <widget class="QLineEdit" name="x_edit">
+                <property name="text">
+                  <string></string>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="2">
+              <widget class="QLabel" name="y_label">
+                <property name="text">
+                 <string>Position UTM Y: </string>
+                </property>
+              </widget>
+            </item>
+            <item  row="0" column="3">
+              <widget class="QLineEdit" name="y_edit">
+                <property name="text">
+                  <string></string>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="4">
+              <widget class="QLabel" name="theta_label">
+                <property name="text">
+                 <string>Angle between UTM x and Camera X: </string>
+                </property>
+              </widget>
+            </item>
+            <item  row="0" column="5">
+              <widget class="QLineEdit" name="theta_edit">
+                <property name="text">
+                  <string></string>
+                </property>
+              </widget>
+            </item>
+            <item  row="1" column="0" colspan="6">
+              <widget class="QListView" name="arc_list">
+              </widget>
+            </item>
+          </layout>
+        </item>
+      </layout>
+    </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
