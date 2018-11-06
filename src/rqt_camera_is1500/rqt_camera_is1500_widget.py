@@ -254,7 +254,7 @@ class Camera_is1500_Widget(Plugin):
         marker_array.markers.append(new_marker)
         self.marker_pub.publish(marker_array)
 
-        print 'Prepare and send data'
+        # print 'Prepare and send data'
         # print(fiducial_pos[0][158])
         # print type(fiducial_pos[0][1])
         # Send fiducial
@@ -262,7 +262,7 @@ class Camera_is1500_Widget(Plugin):
 
         length = len(fiducial_pos[0]) - 1
         marker_array = visualization_msgs.msg.MarkerArray()
-        for i in range(0, length):
+        for i in range(0, length,3):
             new_marker = visualization_msgs.msg.Marker()
             new_marker.header.stamp = rospy.Time.now()
             new_marker.header.frame_id = 'odom'
@@ -272,6 +272,7 @@ class Camera_is1500_Widget(Plugin):
             new_marker.action = visualization_msgs.msg.Marker.ADD;
             new_marker.pose.position.x = fiducial_pos[1][i]
             new_marker.pose.position.y = fiducial_pos[2][i]
+            new_marker.pose.position.z = fiducial_pos[3][i]
             quat = tf.transformations.quaternion_from_euler(0, 0, 0)# TODO set the angle
             new_marker.pose.orientation.x = quat[0]
             new_marker.pose.orientation.y = quat[1]
@@ -285,11 +286,12 @@ class Camera_is1500_Widget(Plugin):
             new_marker.color.g = 0.0
             new_marker.color.b = 0.0
             marker_array.markers.append(new_marker)
+            # i = i + 3
         self.marker_pub.publish(marker_array)
 
         # Fiducial names
         marker_array = visualization_msgs.msg.MarkerArray()
-        for i in range(0, length):
+        for i in range(0, length, 3):
             new_marker = visualization_msgs.msg.Marker()
             new_marker.header.stamp = rospy.Time.now()
             new_marker.header.frame_id = 'odom'
@@ -300,12 +302,13 @@ class Camera_is1500_Widget(Plugin):
             new_marker.text = str(fiducial_pos[0][i])
             new_marker.pose.position.x = fiducial_pos[1][i]
             new_marker.pose.position.y = fiducial_pos[2][i]
-            new_marker.pose.position.z = .1
+            new_marker.pose.position.z = fiducial_pos[3][i] + 0.1
             new_marker.scale.z = 0.1
             new_marker.color.a = 1.0
             new_marker.color.r = 1.0
             new_marker.color.g = 1.0
             new_marker.color.b = 1.0
+            # i = i + 3
             marker_array.markers.append(new_marker)
         self.marker_pub.publish(marker_array)
 
