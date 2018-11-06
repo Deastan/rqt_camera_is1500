@@ -1,8 +1,10 @@
 import os
 import math
-
+import pandas as pd
 
 import yaml
+# from ruamel.yaml import yaml
+# import ruamel.yaml as yaml
 import rospy
 import rospkg
 import rosservice
@@ -70,6 +72,7 @@ class Camera_is1500_Widget(Plugin):
         """
         self.map_path_name = ''
         self.map_file_name = ''
+        self.map_forRviz_file_name = ''
         self.destination_map_file_name = ''
         self.destination_map_config_file_name = ''
         self.cameramap = []
@@ -90,7 +93,11 @@ class Camera_is1500_Widget(Plugin):
         self._widget.desination_save_file_button.released.connect(self.save_file)
         self._widget.config_map_file_name_button.released.connect(self.get_file_yaml)
 
+        # Buttons
         self._widget.config_map_save_file_button.released.connect(self.config_save_file)
+        self._widget.map_to_rviz_send_file_button.released.connect(self.visualize_fiducials)
+        self._widget.map_to_rviz_name_button.released.connect(self.get_file_map_to_rviz)
+
         # Screen explaination msg
         # self._widget.name_edit.setToolTip("Set the name of the folder which will contain the map ")
         # self._widget.path_edit.setToolTip("Path of th map")
@@ -108,6 +115,7 @@ class Camera_is1500_Widget(Plugin):
         """
         ROS
         """
+        self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10)
         # empty yet
 
     """
@@ -138,24 +146,22 @@ class Camera_is1500_Widget(Plugin):
     """
     """
     def config_save_file(self):
-        print('Hi, you are triing to save something with the name of : ',
-            self.destination_map_config_file_name)
-
         map_list = []
         for map in self.cameramap:
             new_map = {}#CameraMap()#{}
             new_map['name'] = map.name
             new_map['path'] = map.path
             map_list.append(new_map)
+
         new_map_to_add = {}
         new_map_to_add['name'] = self.map_file_name
         new_map_to_add['path'] = self.destination_map_config_file_name
         map_list.append(new_map_to_add)
 
         with open(self.destination_map_config_file_name, 'w') as stream:
-            stream.write(yaml.dump(map_list))
-
-        print yaml.dump(map_list)
+            stream.write(yaml.safe_dump(map_list, encoding='utf-8', allow_unicode=False, default_flow_style=False))
+        print 'Saved elements in file' + self.destination_map_config_file_name
+        print yaml.safe_dump(map_list, encoding='utf-8', allow_unicode=False, default_flow_style=False)
 
     """
     """
@@ -214,5 +220,94 @@ class Camera_is1500_Widget(Plugin):
                 self._widget.config_map_file_name_edit.setText(self.destination_map_config_file_name)
 
                 self.read_map()
+    """
+    """
+    def get_file_map_to_rviz(self):
+        file_dlg = QFileDialog()
+        file_dlg.setFileMode(QFileDialog.AnyFile)
+        # file_dlg.setFilter("Yaml files (*.yaml)")
+        # print('Hi, you try to get a file')
+
+        if file_dlg.exec_():
+            map_file_name = file_dlg.selectedFiles()
+
+            rospy.loginfo('Selected files to extract position of the fiducials: %s'%map_file_name)
+            if len(map_file_name) > 0:
+                self.map_forRviz_file_name = map_file_name[0]
+                self._widget.map_to_rviz_path_edit.setText(self.map_forRviz_file_name)
+
+                # self.read_waypoints()
+    """
+    """
+    def visualize_fiducials(self, event=None):
+        data = pd.read_csv(self.map_forRviz_file_name, header=None, sep=' ', skipinitialspace=True, low_memory=False, skiprows=3)
+        fiducial_pos = data.values[:,1], data.values[:,14], data.values[:,15], data.values[:,16] #concatanate the vector
+
+        # delete all fiducial
+        marker_array = visualization_msgs.msg.MarkerArray()
+        new_marker = visualization_msgs.msg.Marker()
+        new_marker.header.stamp = rospy.Time.now()
+        # Set frame id
+        new_marker.header.frame_id = 'odom'
+        new_marker.ns = 'fiducials_pos'
+        new_marker.action = visualization_msgs.msg.Marker.DELETEALL;
+        marker_array.markers.append(new_marker)
+        self.marker_pub.publish(marker_array)
+
+        print 'Prepare and send data'
+        # print(fiducial_pos[0][158])
+        # print type(fiducial_pos[0][1])
+        # Send fiducial
+
+
+        length = len(fiducial_pos[0]) - 1
+        marker_array = visualization_msgs.msg.MarkerArray()
+        for i in range(0, length):
+            new_marker = visualization_msgs.msg.Marker()
+            new_marker.header.stamp = rospy.Time.now()
+            new_marker.header.frame_id = 'odom'
+            new_marker.id = i #int(fiducial_pos[i][0])
+            new_marker.ns = 'fiducials position'
+            new_marker.type = visualization_msgs.msg.Marker.SPHERE;
+            new_marker.action = visualization_msgs.msg.Marker.ADD;
+            new_marker.pose.position.x = fiducial_pos[1][i]
+            new_marker.pose.position.y = fiducial_pos[2][i]
+            quat = tf.transformations.quaternion_from_euler(0, 0, 0)# TODO set the angle
+            new_marker.pose.orientation.x = quat[0]
+            new_marker.pose.orientation.y = quat[1]
+            new_marker.pose.orientation.z = quat[2]
+            new_marker.pose.orientation.w = quat[3]
+            new_marker.scale.x = 0.05
+            new_marker.scale.y = 0.05
+            new_marker.scale.z = 0.05
+            new_marker.color.a = 1.0
+            new_marker.color.r = 1.0
+            new_marker.color.g = 0.0
+            new_marker.color.b = 0.0
+            marker_array.markers.append(new_marker)
+        self.marker_pub.publish(marker_array)
+
+        # Fiducial names
+        marker_array = visualization_msgs.msg.MarkerArray()
+        for i in range(0, length):
+            new_marker = visualization_msgs.msg.Marker()
+            new_marker.header.stamp = rospy.Time.now()
+            new_marker.header.frame_id = 'odom'
+            new_marker.id = i #int(fiducial_pos[i][0])
+            new_marker.ns = 'fiducials_names'
+            new_marker.type = visualization_msgs.msg.Marker.TEXT_VIEW_FACING;
+            new_marker.action = visualization_msgs.msg.Marker.ADD;
+            new_marker.text = str(fiducial_pos[0][i])
+            new_marker.pose.position.x = fiducial_pos[1][i]
+            new_marker.pose.position.y = fiducial_pos[2][i]
+            new_marker.pose.position.z = .1
+            new_marker.scale.z = 0.1
+            new_marker.color.a = 1.0
+            new_marker.color.r = 1.0
+            new_marker.color.g = 1.0
+            new_marker.color.b = 1.0
+            marker_array.markers.append(new_marker)
+        self.marker_pub.publish(marker_array)
+
     """
     """
