@@ -221,6 +221,7 @@ class Camera_is1500_Widget(Plugin):
 
                 self.read_map()
     """
+    RViz group
     """
     def get_file_map_to_rviz(self):
         file_dlg = QFileDialog()
@@ -254,11 +255,16 @@ class Camera_is1500_Widget(Plugin):
         marker_array.markers.append(new_marker)
         self.marker_pub.publish(marker_array)
 
-        # print 'Prepare and send data'
-        # print(fiducial_pos[0][158])
-        # print type(fiducial_pos[0][1])
-        # Send fiducial
-
+        phi_in_deg = 10 # angle btw north and the direction of the door
+        phi = phi_in_deg/360 * 2 * math.pi
+        joao_x = 468655
+        joao_y = 5264080
+        gps_origin_map_x = 468598.24
+        gps_origin_map_y = 5264012.01
+        x = fiducial_pos[1][i]
+        y = fiducial_pos[2][i]
+        x_prim = x * np.cos(phi) - y * np.sin(y) + gps_origin_map_x - joao_x
+        y_prim = x * np.sin(phi) - y * np.cos(y) + gps_origin_map_y - joao_y
 
         length = len(fiducial_pos[0]) - 1
         marker_array = visualization_msgs.msg.MarkerArray()
@@ -272,7 +278,7 @@ class Camera_is1500_Widget(Plugin):
             new_marker.action = visualization_msgs.msg.Marker.ADD;
             new_marker.pose.position.x = fiducial_pos[1][i]
             new_marker.pose.position.y = fiducial_pos[2][i]
-            new_marker.pose.position.z = fiducial_pos[3][i]
+            new_marker.pose.position.z = -fiducial_pos[3][i]
             quat = tf.transformations.quaternion_from_euler(0, 0, 0)# TODO set the angle
             new_marker.pose.orientation.x = quat[0]
             new_marker.pose.orientation.y = quat[1]
@@ -302,7 +308,7 @@ class Camera_is1500_Widget(Plugin):
             new_marker.text = str(fiducial_pos[0][i])
             new_marker.pose.position.x = fiducial_pos[1][i]
             new_marker.pose.position.y = fiducial_pos[2][i]
-            new_marker.pose.position.z = fiducial_pos[3][i] + 0.1
+            new_marker.pose.position.z = -fiducial_pos[3][i] + 0.1
             new_marker.scale.z = 0.1
             new_marker.color.a = 1.0
             new_marker.color.r = 1.0
