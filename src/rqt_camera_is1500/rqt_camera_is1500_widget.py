@@ -21,7 +21,7 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QFileDialog, QErrorMessage
 from python_qt_binding.QtGui import QStandardItemModel, QStandardItem, QDoubleValidator
 
-# Object map to save in file yaml or cfg
+# Object "map" to save in file yaml or cfg
 class CameraMap:
     def __init__(self, name=''):
         self.name = name
@@ -99,11 +99,16 @@ class Camera_is1500_Widget(Plugin):
         # self._widget.y_edit.setValidator(QDoubleValidator())
         # self._widget.map_name_edit.setValidator()
 
-        self._widget.launch_camera_start_button.released.connect(self.start_camera_node)
+        self._widget.launch_camera_start_button.released.connect(self.start_camera_is1500_launchFile)
         self._widget.color_launch_camera_label.setStyleSheet("background-color:#ff0000;")
         self._widget.rviz_start_button.released.connect(self.start_rviz)
         self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
 
+        """
+        Set map
+        """
+        self._widget.send_map_param_button.released.connect(self.set_map_rosparam)
+        self._widget.map_param_edit.setValidator(QDoubleValidator())
 
         """
         Add/modify map
@@ -113,7 +118,8 @@ class Camera_is1500_Widget(Plugin):
         self._widget.desination_save_file_button.released.connect(self.save_file)
         self._widget.config_map_file_name_button.released.connect(self.get_file_yaml)
         self._widget.config_map_save_file_button.released.connect(self.config_save_file)
-
+        self.model = QStandardItemModel(self._widget.map_from_mapYaml_list)
+        self.model.itemChanged.connect(self.on_change_mapList)
 
         # Screen explaination msg
         # self._widget.name_edit.setToolTip("Set the name of the folder which will contain the map ")
@@ -157,20 +163,27 @@ class Camera_is1500_Widget(Plugin):
         # empty yet
     """
     """
-    def start_camera_node(self):
+    def start_camera_is1500_launchFile(self):
         # os.spawnl(os.P_NOWAIT, 'sudo shutdown && 123456')
-        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/src/rqt_camera_is1500/camera_is1500.bash', shell=True)
+        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/script/camera_is1500.bash', shell=True)
         # os.spawnl(os.P_NOWAIT, 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && cd src/camera_is1500/launch/ && roslaunch camera_is1500 cameraTry.launch')
         # print 'Node: Camera_is1500 launched'
         self._widget.color_launch_camera_label.setStyleSheet("background-color:#228B22;")
 
     def start_rviz(self):
         self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
-        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/src/rqt_camera_is1500/rviz.bash', shell=True)
+        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/script/rviz.bash', shell=True)
         # print 'RViz launched'
         self._widget.color_rviz_label.setStyleSheet("background-color:#228B22;")
 
     """
+    Node param settings
+    """
+    def set_map_rosparam(self):
+        cmd = "rosparam set /camera_is1500_node/mapNumber %d" % (float(self._widget.map_param_edit.text()))
+        subprocess.call(cmd, shell=True)
+    """
+    Map selection function
     """
     def map_name_change(self):
         self.map_file_name = self._widget.map_name_edit.text()
@@ -265,6 +278,11 @@ class Camera_is1500_Widget(Plugin):
                 self._widget.config_map_file_name_edit.setText(self.destination_map_config_file_name)
 
                 self.read_map()
+    """
+    """
+    def on_change_mapList(self):
+        print(hahaa)
+
     """
     RViz group
     """
