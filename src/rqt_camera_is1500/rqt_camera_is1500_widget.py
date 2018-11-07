@@ -1,6 +1,7 @@
 import os
 import math
 import pandas as pd
+import numpy as np
 
 import yaml
 # from ruamel.yaml import yaml
@@ -255,16 +256,17 @@ class Camera_is1500_Widget(Plugin):
         marker_array.markers.append(new_marker)
         self.marker_pub.publish(marker_array)
 
-        phi_in_deg = 10 # angle btw north and the direction of the door
-        phi = phi_in_deg/360 * 2 * math.pi
+        # TODO: Verify this XmlRpcValue 
+        phi_in_deg = 0 # angle btw north and the direction of the door
+        phi = phi_in_deg/360 * 2 * 3.14
         joao_x = 468655
         joao_y = 5264080
         gps_origin_map_x = 468598.24
         gps_origin_map_y = 5264012.01
-        x = fiducial_pos[1][i]
-        y = fiducial_pos[2][i]
-        x_prim = x * np.cos(phi) - y * np.sin(y) + gps_origin_map_x - joao_x
-        y_prim = x * np.sin(phi) - y * np.cos(y) + gps_origin_map_y - joao_y
+        # x = fiducial_pos[1][i]
+        # y = fiducial_pos[2][i]
+        # x_prim = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
+        # y_prim = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
 
         length = len(fiducial_pos[0]) - 1
         marker_array = visualization_msgs.msg.MarkerArray()
@@ -276,8 +278,11 @@ class Camera_is1500_Widget(Plugin):
             new_marker.ns = 'fiducials position'
             new_marker.type = visualization_msgs.msg.Marker.SPHERE;
             new_marker.action = visualization_msgs.msg.Marker.ADD;
-            new_marker.pose.position.x = fiducial_pos[1][i]
-            new_marker.pose.position.y = fiducial_pos[2][i]
+            x = fiducial_pos[1][i]
+            y = fiducial_pos[2][i]
+            new_marker.pose.position.x = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
+            new_marker.pose.position.y = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
+            print('( ', new_marker.pose.position.x, ', ', new_marker.pose.position.y, ') ')
             new_marker.pose.position.z = -fiducial_pos[3][i]
             quat = tf.transformations.quaternion_from_euler(0, 0, 0)# TODO set the angle
             new_marker.pose.orientation.x = quat[0]
@@ -306,8 +311,10 @@ class Camera_is1500_Widget(Plugin):
             new_marker.type = visualization_msgs.msg.Marker.TEXT_VIEW_FACING;
             new_marker.action = visualization_msgs.msg.Marker.ADD;
             new_marker.text = str(fiducial_pos[0][i])
-            new_marker.pose.position.x = fiducial_pos[1][i]
-            new_marker.pose.position.y = fiducial_pos[2][i]
+            x = fiducial_pos[1][i]
+            y = fiducial_pos[2][i]
+            new_marker.pose.position.x = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
+            new_marker.pose.position.y = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
             new_marker.pose.position.z = -fiducial_pos[3][i] + 0.1
             new_marker.scale.z = 0.1
             new_marker.color.a = 1.0
