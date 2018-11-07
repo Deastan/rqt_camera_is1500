@@ -1,10 +1,11 @@
 # By Jonathan Burkhard, Kyburz 2018
-# Base on Joao's GUI 
+# Base on Joao's GUI
 import os
 import math
 import pandas as pd
 import numpy as np
 import yaml
+import subprocess
 
 import rospy
 import rospkg
@@ -98,6 +99,12 @@ class Camera_is1500_Widget(Plugin):
         # self._widget.y_edit.setValidator(QDoubleValidator())
         # self._widget.map_name_edit.setValidator()
 
+        self._widget.launch_camera_start_button.released.connect(self.start_camera_node)
+        self._widget.color_launch_camera_label.setStyleSheet("background-color:#ff0000;")
+        self._widget.rviz_start_button.released.connect(self.start_rviz)
+        self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
+
+
         """
         Add/modify map
         """
@@ -141,12 +148,27 @@ class Camera_is1500_Widget(Plugin):
 
         # Buttons
         self._widget.map_to_rviz_send_file_button.released.connect(self.visualize_fiducials)
+
         self._widget.map_to_rviz_name_button.released.connect(self.get_file_map_to_rviz)
         """
         ROS
         """
         self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10)
         # empty yet
+    """
+    """
+    def start_camera_node(self):
+        # os.spawnl(os.P_NOWAIT, 'sudo shutdown && 123456')
+        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/src/rqt_camera_is1500/camera_is1500.bash', shell=True)
+        # os.spawnl(os.P_NOWAIT, 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && cd src/camera_is1500/launch/ && roslaunch camera_is1500 cameraTry.launch')
+        # print 'Node: Camera_is1500 launched'
+        self._widget.color_launch_camera_label.setStyleSheet("background-color:#228B22;")
+
+    def start_rviz(self):
+        self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
+        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/src/rqt_camera_is1500/rviz.bash', shell=True)
+        # print 'RViz launched'
+        self._widget.color_rviz_label.setStyleSheet("background-color:#228B22;")
 
     """
     """
