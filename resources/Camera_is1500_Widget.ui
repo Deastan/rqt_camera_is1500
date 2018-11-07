@@ -1,3 +1,6 @@
+<!--
+By Jonathan Burkhard, Kyburz 2018
+Base on Joao's GUI  -->
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Camera_is1500_Widget</class>
@@ -119,7 +122,7 @@
         </item>
       </layout>
     </item>
-    <item> <!-- Frame details -->
+    <item> <!-- Rviz -->
       <layout class="QGridLayout" name="frame_layout">
         <item row="0" column="0">
           <widget class="QLabel" name="map_path_label">
@@ -146,6 +149,76 @@
           <widget class="QPushButton" name="map_to_rviz_send_file_button">
             <property name="text">
               <string>Send to RVIZ</string>
+            </property>
+          </widget>
+        </item>
+        <item row="1" column="0">
+          <widget class="QLabel" name="utm_x_label">
+            <property name="text">
+             <string>East (x-axis): </string>
+            </property>
+          </widget>
+        </item>
+        <item  row="1" column="1">
+          <widget class="QLineEdit" name="utm_x_edit">
+            <property name="text">
+              <string>468598.24</string>
+            </property>
+          </widget>
+        </item>
+        <item row="1" column="2">
+          <widget class="QLabel" name="utm_y_label">
+            <property name="text">
+             <string>North (y-axis): </string>
+            </property>
+          </widget>
+        </item>
+        <item  row="1" column="3">
+          <widget class="QLineEdit" name="utm_y_edit">
+            <property name="text">
+              <string>5264012.01</string>
+            </property>
+          </widget>
+        </item>
+        <item row="1" column="4">
+          <widget class="QLabel" name="utm_phi_label">
+            <property name="text">
+             <string>Phi </string>
+            </property>
+          </widget>
+        </item>
+        <item  row="1" column="5">
+          <widget class="QLineEdit" name="utm_phi_edit">
+            <property name="text">
+              <string>0.0</string>
+            </property>
+          </widget>
+        </item>
+        <item row="2" column="0">
+          <widget class="QLabel" name="joao_origin_utm_x_label">
+            <property name="text">
+             <string>Joao's origin east: </string>
+            </property>
+          </widget>
+        </item>
+        <item  row="2" column="1">
+          <widget class="QLineEdit" name="joao_origin_utm_x_edit">
+            <property name="text">
+              <string>468655</string>
+            </property>
+          </widget>
+        </item>
+        <item row="2" column="2">
+          <widget class="QLabel" name="joao_origin_utm_y_label">
+            <property name="text">
+             <string>Joao's origin north: </string>
+            </property>
+          </widget>
+        </item>
+        <item  row="2" column="3">
+          <widget class="QLineEdit" name="joao_origin_utm_y_edit">
+            <property name="text">
+              <string>5264080</string>
             </property>
           </widget>
         </item>

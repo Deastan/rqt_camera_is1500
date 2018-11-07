@@ -1,11 +1,11 @@
+# By Jonathan Burkhard, Kyburz 2018
+# Base on Joao's GUI 
 import os
 import math
 import pandas as pd
 import numpy as np
-
 import yaml
-# from ruamel.yaml import yaml
-# import ruamel.yaml as yaml
+
 import rospy
 import rospkg
 import rosservice
@@ -70,6 +70,7 @@ class Camera_is1500_Widget(Plugin):
         context.add_widget(self._widget)
 
         """
+        MAP path for is1500 package
         """
         self.map_path_name = ''
         self.map_file_name = ''
@@ -78,6 +79,14 @@ class Camera_is1500_Widget(Plugin):
         self.destination_map_config_file_name = ''
         self.cameramap = []
         self.current_wp = None
+        """
+        RVIZ-APPs
+        """
+        self.utm_x_value = 0.0
+        self.utm_y_value = 0.0
+        self.utm_phi_value = 0.0
+        self.joao_origin_utm_x_value = 0.0
+        self.joao_origin_utm_y_value = 0.0
 
         """
         Connect stuff here
@@ -89,15 +98,15 @@ class Camera_is1500_Widget(Plugin):
         # self._widget.y_edit.setValidator(QDoubleValidator())
         # self._widget.map_name_edit.setValidator()
 
+        """
+        Add/modify map
+        """
         self._widget.file_name_button.released.connect(self.get_file)
         self._widget.desination_file_name_button.released.connect(self.get_folder)
         self._widget.desination_save_file_button.released.connect(self.save_file)
         self._widget.config_map_file_name_button.released.connect(self.get_file_yaml)
-
-        # Buttons
         self._widget.config_map_save_file_button.released.connect(self.config_save_file)
-        self._widget.map_to_rviz_send_file_button.released.connect(self.visualize_fiducials)
-        self._widget.map_to_rviz_name_button.released.connect(self.get_file_map_to_rviz)
+
 
         # Screen explaination msg
         # self._widget.name_edit.setToolTip("Set the name of the folder which will contain the map ")
@@ -107,12 +116,32 @@ class Camera_is1500_Widget(Plugin):
         # self._widget.name_edit.description = "This is label name_edit"
         # self._widget.path_edit.description = "This is label path_edit"
         # self._widget.file_name_button.description = "This is the OK button"
+
+
         #
         # for widget in (self._widget.name_edit, self._widget.path_edit,
         #     self._widget.file_name_button):
         #     widget.bind("<Enter>", self.on_enter)
         #     widget.bind("<Leave>", self.on_leave)
         self._widget.map_name_edit.textChanged.connect(self.map_name_change)
+
+        """
+        Rviz part
+        """
+        self._widget.utm_x_edit.setValidator(QDoubleValidator())
+        self._widget.utm_y_edit.setValidator(QDoubleValidator())
+        self._widget.utm_phi_edit.setValidator(QDoubleValidator())
+        self._widget.utm_x_edit.textChanged.connect(self.utm_x_change)
+        self._widget.utm_y_edit.textChanged.connect(self.utm_y_change)
+        self._widget.utm_phi_edit.textChanged.connect(self.utm_phi_change)
+        self._widget.joao_origin_utm_x_edit.setValidator(QDoubleValidator())
+        self._widget.joao_origin_utm_y_edit.setValidator(QDoubleValidator())
+        self._widget.joao_origin_utm_x_edit.textChanged.connect(self.joao_origin_utm_x_change)
+        self._widget.joao_origin_utm_y_edit.textChanged.connect(self.joao_origin_utm_y_change)
+
+        # Buttons
+        self._widget.map_to_rviz_send_file_button.released.connect(self.visualize_fiducials)
+        self._widget.map_to_rviz_name_button.released.connect(self.get_file_map_to_rviz)
         """
         ROS
         """
@@ -173,8 +202,6 @@ class Camera_is1500_Widget(Plugin):
     def get_file(self):
         file_dlg = QFileDialog()
         file_dlg.setFileMode(QFileDialog.AnyFile)
-        # file_dlg.setFilter("Yaml files (*.yaml)")
-        # print('Hi, you try to get a file')
 
         if file_dlg.exec_():
             map_file_name = file_dlg.selectedFiles()
@@ -189,13 +216,8 @@ class Camera_is1500_Widget(Plugin):
     """
     def get_folder(self):
         file_dlg = QFileDialog()
-        # QFileDialog::getExistingDirectory()
         file_dlg.setFileMode(QFileDialog.Directory)
-        # getExistingDirectory(self, "Open a folder", "/home/", file_dlg.ShowDirsOnly)
-        # # file_dlg.setFilter("Yaml files (*.yaml)")
-        # # print('Hi, you try to get a file')
-        #
-        # fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), "/home/catkin_ws_kyb", tr("Image Files (*.png *.jpg *.bmp)"));
+
         if file_dlg.exec_():
             destination_map_file_name = file_dlg.selectedFiles()
 
@@ -224,6 +246,29 @@ class Camera_is1500_Widget(Plugin):
     """
     RViz group
     """
+    def utm_x_change(self):
+        self.utm_x_value = self._widget.utm_x_edit.text()
+        # print('utm_x: ', self.utm_x_value, ', type: ', type(self.utm_x_value))
+    """
+    """
+    def utm_y_change(self):
+        self.utm_y_value = self._widget.utm_y_edit.text()
+        # print('utm_y: ', self.utm_y_value, ', type: ', type(self.utm_y_value))
+    """
+    """
+    def utm_phi_change(self):
+        self.utm_phi_value = self._widget.utm_phi_edit.text()
+        # print('utm_phi: ', self.utm_phi_value, ', type: ', type(self.utm_phi_value))
+    """
+    """
+    def joao_origin_utm_x_change(self):
+        self.joao_origin_utm_x_value = self._widget.joao_origin_utm_x_edit.text()
+    """
+    """
+    def joao_origin_utm_y_change(self):
+        self.joao_origin_utm_y_value = self._widget.joao_origin_utm_y_edit.text()
+    """
+    """
     def get_file_map_to_rviz(self):
         file_dlg = QFileDialog()
         file_dlg.setFileMode(QFileDialog.AnyFile)
@@ -237,8 +282,6 @@ class Camera_is1500_Widget(Plugin):
             if len(map_file_name) > 0:
                 self.map_forRviz_file_name = map_file_name[0]
                 self._widget.map_to_rviz_path_edit.setText(self.map_forRviz_file_name)
-
-                # self.read_waypoints()
     """
     """
     def visualize_fiducials(self, event=None):
@@ -256,19 +299,23 @@ class Camera_is1500_Widget(Plugin):
         marker_array.markers.append(new_marker)
         self.marker_pub.publish(marker_array)
 
-        # TODO: Verify this XmlRpcValue 
-        phi_in_deg = 0 # angle btw north and the direction of the door
-        phi = phi_in_deg/360 * 2 * 3.14
-        joao_x = 468655
-        joao_y = 5264080
-        gps_origin_map_x = 468598.24
-        gps_origin_map_y = 5264012.01
+        # TODO: Verify this XmlRpcValue
+        # angle btw north and the direction of the door
+        phi_degrees = float(self.utm_phi_value)
+        phi = phi_degrees/360 * 2 * 3.14
+        joao_x = self.joao_origin_utm_x_value#468655
+        joao_y = self.joao_origin_utm_y_value#5264080
+        gps_origin_map_x = float(self.utm_x_value)#468598.24
+        gps_origin_map_y = float(self.utm_x_value)#5264012.01
+
         # x = fiducial_pos[1][i]
         # y = fiducial_pos[2][i]
         # x_prim = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
         # y_prim = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
 
+        # Calculate the size of the fiducials matrix
         length = len(fiducial_pos[0]) - 1
+        # Fiducial points to RVIZ
         marker_array = visualization_msgs.msg.MarkerArray()
         for i in range(0, length,3):
             new_marker = visualization_msgs.msg.Marker()
@@ -297,7 +344,6 @@ class Camera_is1500_Widget(Plugin):
             new_marker.color.g = 0.0
             new_marker.color.b = 0.0
             marker_array.markers.append(new_marker)
-            # i = i + 3
         self.marker_pub.publish(marker_array)
 
         # Fiducial names
@@ -321,7 +367,6 @@ class Camera_is1500_Widget(Plugin):
             new_marker.color.r = 1.0
             new_marker.color.g = 1.0
             new_marker.color.b = 1.0
-            # i = i + 3
             marker_array.markers.append(new_marker)
         self.marker_pub.publish(marker_array)
 
