@@ -50,20 +50,41 @@
                 </widget>
               </item>
               <item row="1" column="0">
-                <widget class="QLabel" name="rviz_label">
+                <widget class="QLabel" name="launch_supervisor_label">
                   <property name="text">
-                   <string>RViz: </string>
+                   <string>Supervisor: </string>
                   </property>
                 </widget>
               </item>
               <item row="1" column="1">
-                <widget class="QPushButton" name="rviz_start_button">
+                <widget class="QPushButton" name="launch_supervisor_start_button">
                   <property name="text">
                     <string>Start</string>
                   </property>
                 </widget>
               </item>
               <item row="1" column="2">
+                <widget class="QLabel" name="launch_supervisor_color_label">
+                  <property name="text">
+                   <string>  </string>
+                  </property>
+                </widget>
+              </item>
+              <item row="2" column="0">
+                <widget class="QLabel" name="rviz_label">
+                  <property name="text">
+                   <string>RViz: </string>
+                  </property>
+                </widget>
+              </item>
+              <item row="2" column="1">
+                <widget class="QPushButton" name="rviz_start_button">
+                  <property name="text">
+                    <string>Start</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="2" column="2">
                 <widget class="QLabel" name="color_rviz_label">
                   <property name="text">
                    <string>  </string>

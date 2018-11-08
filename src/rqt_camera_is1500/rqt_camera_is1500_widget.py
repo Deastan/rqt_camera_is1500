@@ -83,11 +83,11 @@ class Camera_is1500_Widget(Plugin):
         """
         RVIZ-APPs
         """
-        self.utm_x_value = 0.0
-        self.utm_y_value = 0.0
-        self.utm_phi_value = 0.0
-        self.joao_origin_utm_x_value = 0.0
-        self.joao_origin_utm_y_value = 0.0
+        self.utm_x_value = float(self._widget.utm_x_edit.text())
+        self.utm_y_value = float(self._widget.utm_y_edit.text())
+        self.utm_phi_value = float(self._widget.utm_phi_edit.text())
+        self.joao_origin_utm_x_value = float(self._widget.joao_origin_utm_x_edit.text())
+        self.joao_origin_utm_y_value = float(self._widget.joao_origin_utm_y_edit.text())
 
         """
         Connect stuff here
@@ -101,6 +101,8 @@ class Camera_is1500_Widget(Plugin):
 
         self._widget.launch_camera_start_button.released.connect(self.start_camera_is1500_launchFile)
         self._widget.color_launch_camera_label.setStyleSheet("background-color:#ff0000;")
+        self._widget.launch_supervisor_start_button.released.connect(self.start_supervisor_launchFile)
+        self._widget.launch_supervisor_color_label.setStyleSheet("background-color:#ff0000;")
         self._widget.rviz_start_button.released.connect(self.start_rviz)
         self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
 
@@ -162,6 +164,7 @@ class Camera_is1500_Widget(Plugin):
         self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10)
         # empty yet
     """
+    Start node
     """
     def start_camera_is1500_launchFile(self):
         # os.spawnl(os.P_NOWAIT, 'sudo shutdown && 123456')
@@ -169,6 +172,11 @@ class Camera_is1500_Widget(Plugin):
         # os.spawnl(os.P_NOWAIT, 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && cd src/camera_is1500/launch/ && roslaunch camera_is1500 cameraTry.launch')
         # print 'Node: Camera_is1500 launched'
         self._widget.color_launch_camera_label.setStyleSheet("background-color:#228B22;")
+
+    def start_supervisor_launchFile(self):
+        cmd = "gnome-terminal -x sh -c 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && roslaunch supervisor supervisor.launch"
+        subprocess.call(cmd, shell=True)
+        self._widget.launch_supervisor_color_label.setStyleSheet("background-color:#228B22;")
 
     def start_rviz(self):
         self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
@@ -280,6 +288,7 @@ class Camera_is1500_Widget(Plugin):
                 self.read_map()
     """
     """
+    # TODO : ........
     def on_change_mapList(self):
         print(hahaa)
 
@@ -287,26 +296,26 @@ class Camera_is1500_Widget(Plugin):
     RViz group
     """
     def utm_x_change(self):
-        self.utm_x_value = self._widget.utm_x_edit.text()
+        self.utm_x_value = float(self._widget.utm_x_edit.text())
         # print('utm_x: ', self.utm_x_value, ', type: ', type(self.utm_x_value))
     """
     """
     def utm_y_change(self):
-        self.utm_y_value = self._widget.utm_y_edit.text()
+        self.utm_y_value = float(self._widget.utm_y_edit.text())
         # print('utm_y: ', self.utm_y_value, ', type: ', type(self.utm_y_value))
     """
     """
     def utm_phi_change(self):
-        self.utm_phi_value = self._widget.utm_phi_edit.text()
+        self.utm_phi_value = float(self._widget.utm_phi_edit.text())
         # print('utm_phi: ', self.utm_phi_value, ', type: ', type(self.utm_phi_value))
     """
     """
     def joao_origin_utm_x_change(self):
-        self.joao_origin_utm_x_value = self._widget.joao_origin_utm_x_edit.text()
+        self.joao_origin_utm_x_value = float(self._widget.joao_origin_utm_x_edit.text())
     """
     """
     def joao_origin_utm_y_change(self):
-        self.joao_origin_utm_y_value = self._widget.joao_origin_utm_y_edit.text()
+        self.joao_origin_utm_y_value = float(self._widget.joao_origin_utm_y_edit.text())
     """
     """
     def get_file_map_to_rviz(self):
@@ -346,7 +355,7 @@ class Camera_is1500_Widget(Plugin):
         joao_x = self.joao_origin_utm_x_value#468655
         joao_y = self.joao_origin_utm_y_value#5264080
         gps_origin_map_x = float(self.utm_x_value)#468598.24
-        gps_origin_map_y = float(self.utm_x_value)#5264012.01
+        gps_origin_map_y = float(self.utm_y_value)#5264012.01
 
         # x = fiducial_pos[1][i]
         # y = fiducial_pos[2][i]
