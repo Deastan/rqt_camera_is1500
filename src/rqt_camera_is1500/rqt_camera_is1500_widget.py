@@ -16,6 +16,10 @@ import tf2_geometry_msgs
 import geometry_msgs.msg
 import visualization_msgs.msg
 
+import tf.transformations
+from geometry_msgs.msg import Quaternion, Point, Pose, Twist, Vector3
+from nav_msgs.msg import Odometry
+
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QFileDialog, QErrorMessage
@@ -88,7 +92,8 @@ class Camera_is1500_Widget(Plugin):
         self.utm_phi_value = float(self._widget.utm_phi_edit.text())
         self.joao_origin_utm_x_value = float(self._widget.joao_origin_utm_x_edit.text())
         self.joao_origin_utm_y_value = float(self._widget.joao_origin_utm_y_edit.text())
-
+        self.fiducials_map = []
+        self.indoor = self._widget.indoor_checkBox_edit.isChecked()
         """
         Connect stuff here
         """
@@ -105,6 +110,8 @@ class Camera_is1500_Widget(Plugin):
         self._widget.launch_supervisor_color_label.setStyleSheet("background-color:#ff0000;")
         self._widget.rviz_start_button.released.connect(self.start_rviz)
         self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
+
+        self._widget.test_button.released.connect(self.test_button_function)
 
         """
         Set map
@@ -153,6 +160,7 @@ class Camera_is1500_Widget(Plugin):
         self._widget.joao_origin_utm_y_edit.setValidator(QDoubleValidator())
         self._widget.joao_origin_utm_x_edit.textChanged.connect(self.joao_origin_utm_x_change)
         self._widget.joao_origin_utm_y_edit.textChanged.connect(self.joao_origin_utm_y_change)
+        self._widget.indoor_checkBox_edit.stateChanged.connect(self.indoor_isCheck)
 
         # Buttons
         self._widget.map_to_rviz_send_file_button.released.connect(self.visualize_fiducials)
@@ -162,9 +170,13 @@ class Camera_is1500_Widget(Plugin):
         ROS
         """
         self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10)
+        self.camera_pos_sub = rospy.Subscriber("/base_link_odom_camera_is1500", Odometry, self.publish_transform_pos)
+        self.transform_cameraPos_pub = rospy.Publisher('/transform_cameraPos_pub', Odometry, queue_size=1)
+        # rospy.spin()
         # empty yet
+
     """
-    Start node
+    Start nodes
     """
     def start_camera_is1500_launchFile(self):
         # os.spawnl(os.P_NOWAIT, 'sudo shutdown && 123456')
@@ -183,6 +195,8 @@ class Camera_is1500_Widget(Plugin):
         subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/script/rviz.bash', shell=True)
         # print 'RViz launched'
         self._widget.color_rviz_label.setStyleSheet("background-color:#228B22;")
+    def test_button_function(self):
+        print('Checkbox: ', self.indoor)
 
     """
     Node param settings
@@ -336,7 +350,7 @@ class Camera_is1500_Widget(Plugin):
     def visualize_fiducials(self, event=None):
         data = pd.read_csv(self.map_forRviz_file_name, header=None, sep=' ', skipinitialspace=True, low_memory=False, skiprows=3)
         fiducial_pos = data.values[:,1], data.values[:,14], data.values[:,15], data.values[:,16] #concatanate the vector
-
+        self.fiducials_map = fiducial_pos
         # delete all fiducial
         marker_array = visualization_msgs.msg.MarkerArray()
         new_marker = visualization_msgs.msg.Marker()
@@ -348,7 +362,7 @@ class Camera_is1500_Widget(Plugin):
         marker_array.markers.append(new_marker)
         self.marker_pub.publish(marker_array)
 
-        # TODO: Verify this XmlRpcValue
+        # TODO:
         # angle btw north and the direction of the door
         phi_degrees = float(self.utm_phi_value)
         phi = phi_degrees/360 * 2 * 3.14
@@ -356,11 +370,6 @@ class Camera_is1500_Widget(Plugin):
         joao_y = self.joao_origin_utm_y_value#5264080
         gps_origin_map_x = float(self.utm_x_value)#468598.24
         gps_origin_map_y = float(self.utm_y_value)#5264012.01
-
-        # x = fiducial_pos[1][i]
-        # y = fiducial_pos[2][i]
-        # x_prim = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
-        # y_prim = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
 
         # Calculate the size of the fiducials matrix
         length = len(fiducial_pos[0]) - 1
@@ -421,3 +430,47 @@ class Camera_is1500_Widget(Plugin):
 
     """
     """
+    def transformFromLastGPS(self, lat, long, direction_vector):
+        print('nothing yet')
+    """
+    """
+    def indoor_isCheck(self):
+        self.indoor = self._widget.indoor_checkBox_edit.isChecked()
+
+    """
+    """
+    def publish_transform_pos(self, msg):
+        print 'Inside function'
+        if self.indoor:
+            #print(msg.pose.pose.position.x, ', ', msg.pose.pose.position.y)
+            x = msg.pose.pose.position.x
+            y = msg.pose.pose.position.y
+            # angle btw north and the direction of the door
+            phi_degrees = float(self.utm_phi_value)
+            phi = phi_degrees/360 * 2 * 3.14
+            joao_x = self.joao_origin_utm_x_value#468655
+            joao_y = self.joao_origin_utm_y_value#5264080
+            gps_origin_map_x = float(self.utm_x_value)#468598.24
+            gps_origin_map_y = float(self.utm_y_value)#5264012.01
+            print('Indoor')
+            odom = Odometry()
+            odom.header.stamp = rospy.Time.now()
+            odom.header.frame_id = 'odom'
+            odom.child_frame_id = 'base_link'
+            odom.pose.pose.position.x = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
+            odom.pose.pose.position.y = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
+            odom.pose.pose.position.z = 0
+            odom.pose.pose.orientation = msg.pose.pose.orientation
+            # odom.header.stamp = rospy.Time.now()
+    		# odom.header.frame_id = 'odom'
+    		# odom.child_frame_id = 'base_link'
+    		# odom.pose.pose.position.x = msg.pose.pose.position.x#utm_pos.easting - self.origin.x
+    		# odom.pose.pose.position.y = msg.pose.pose.position.y#utm_pos.northing - self.origin.y
+    		# odom.pose.pose.position.z = 0
+            #
+    		# # Orientation
+    		# self.orientation = msg.pose.pose.orientation
+            self.transform_cameraPos_pub.publish(odom)
+
+        else:
+            print('Outdoor')

@@ -91,6 +91,13 @@
                   </property>
                 </widget>
               </item>
+              <item row="3" column="0" colspan="3">
+                <widget class="QPushButton" name="test_button">
+                  <property name="text">
+                    <string>Test</string>
+                  </property>
+                </widget>
+              </item>
             </layout>
           </item>
         </layout>
@@ -340,6 +347,13 @@
             <widget class="QLineEdit" name="joao_origin_utm_y_edit">
               <property name="text">
                 <string>5264080</string>
+              </property>
+            </widget>
+          </item>
+          <item  row="3" column="0">
+            <widget class="QCheckBox" name="indoor_checkBox_edit">
+              <property name="text">
+                <string>Indoor</string>
               </property>
             </widget>
           </item>
