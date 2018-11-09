@@ -1,7 +1,7 @@
 # By Jonathan Burkhard, Kyburz 2018
-# Base on Joao's GUI
+# Based on Joao's GUI
 import os
-import math
+from math import radians, pow
 import pandas as pd
 import numpy as np
 import yaml
@@ -79,7 +79,6 @@ class Camera_is1500_Widget(Plugin):
         """
         self.map_path_name = ''
         self.map_file_name = ''
-        self.map_forRviz_file_name = ''
         self.destination_map_file_name = ''
         self.destination_map_config_file_name = ''
         self.cameramap = []
@@ -87,6 +86,7 @@ class Camera_is1500_Widget(Plugin):
         """
         RVIZ-APPs
         """
+        self.map_forRviz_file_name = self._widget.map_to_rviz_path_edit.text()
         self.utm_x_value = float(self._widget.utm_x_edit.text())
         self.utm_y_value = float(self._widget.utm_y_edit.text())
         self.utm_phi_value = float(self._widget.utm_phi_edit.text())
@@ -94,6 +94,9 @@ class Camera_is1500_Widget(Plugin):
         self.joao_origin_utm_y_value = float(self._widget.joao_origin_utm_y_edit.text())
         self.fiducials_map = []
         self.indoor = self._widget.indoor_checkBox_edit.isChecked()
+        self.init_transf = False
+        self.origin_cam_x = 0.0
+        self.origin_cam_y = 0.0
         """
         Connect stuff here
         """
@@ -170,7 +173,9 @@ class Camera_is1500_Widget(Plugin):
         ROS
         """
         self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10)
-        self.camera_pos_sub = rospy.Subscriber("/base_link_odom_camera_is1500", Odometry, self.publish_transform_pos)
+        self.currentMap_marker_pub = rospy.Publisher('/fiducials_position_current', visualization_msgs.msg.MarkerArray, queue_size=10)
+        # self.camera_pos_sub = rospy.Subscriber("/base_link_odom_camera_is1500", Odometry, self.publish_transform_pos)
+        self.camera_pos_sub = rospy.Subscriber("/position_camera_is1500", Odometry, self.publish_transform_pos)
         self.transform_cameraPos_pub = rospy.Publisher('/transform_cameraPos_pub', Odometry, queue_size=1)
         # rospy.spin()
         # empty yet
@@ -347,130 +352,168 @@ class Camera_is1500_Widget(Plugin):
                 self._widget.map_to_rviz_path_edit.setText(self.map_forRviz_file_name)
     """
     """
+    # Screen in RViz a selected map in chosen position when button is preshed
     def visualize_fiducials(self, event=None):
-        data = pd.read_csv(self.map_forRviz_file_name, header=None, sep=' ', skipinitialspace=True, low_memory=False, skiprows=3)
-        fiducial_pos = data.values[:,1], data.values[:,14], data.values[:,15], data.values[:,16] #concatanate the vector
-        self.fiducials_map = fiducial_pos
-        # delete all fiducial
-        marker_array = visualization_msgs.msg.MarkerArray()
-        new_marker = visualization_msgs.msg.Marker()
-        new_marker.header.stamp = rospy.Time.now()
-        # Set frame id
-        new_marker.header.frame_id = 'odom'
-        new_marker.ns = 'fiducials_pos'
-        new_marker.action = visualization_msgs.msg.Marker.DELETEALL;
-        marker_array.markers.append(new_marker)
-        self.marker_pub.publish(marker_array)
-
-        # TODO:
-        # angle btw north and the direction of the door
-        phi_degrees = float(self.utm_phi_value)
-        phi = phi_degrees/360 * 2 * 3.14
-        joao_x = self.joao_origin_utm_x_value#468655
-        joao_y = self.joao_origin_utm_y_value#5264080
-        gps_origin_map_x = float(self.utm_x_value)#468598.24
-        gps_origin_map_y = float(self.utm_y_value)#5264012.01
-
-        # Calculate the size of the fiducials matrix
-        length = len(fiducial_pos[0]) - 1
-        # Fiducial points to RVIZ
-        marker_array = visualization_msgs.msg.MarkerArray()
-        for i in range(0, length,3):
-            new_marker = visualization_msgs.msg.Marker()
-            new_marker.header.stamp = rospy.Time.now()
-            new_marker.header.frame_id = 'odom'
-            new_marker.id = i #int(fiducial_pos[i][0])
-            new_marker.ns = 'fiducials position'
-            new_marker.type = visualization_msgs.msg.Marker.SPHERE;
-            new_marker.action = visualization_msgs.msg.Marker.ADD;
-            x = fiducial_pos[1][i]
-            y = fiducial_pos[2][i]
-            new_marker.pose.position.x = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
-            new_marker.pose.position.y = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
-            print('( ', new_marker.pose.position.x, ', ', new_marker.pose.position.y, ') ')
-            new_marker.pose.position.z = -fiducial_pos[3][i]
-            quat = tf.transformations.quaternion_from_euler(0, 0, 0)# TODO set the angle
-            new_marker.pose.orientation.x = quat[0]
-            new_marker.pose.orientation.y = quat[1]
-            new_marker.pose.orientation.z = quat[2]
-            new_marker.pose.orientation.w = quat[3]
-            new_marker.scale.x = 0.05
-            new_marker.scale.y = 0.05
-            new_marker.scale.z = 0.05
-            new_marker.color.a = 1.0
-            new_marker.color.r = 1.0
-            new_marker.color.g = 0.0
-            new_marker.color.b = 0.0
-            marker_array.markers.append(new_marker)
-        self.marker_pub.publish(marker_array)
-
-        # Fiducial names
-        marker_array = visualization_msgs.msg.MarkerArray()
-        for i in range(0, length, 3):
-            new_marker = visualization_msgs.msg.Marker()
-            new_marker.header.stamp = rospy.Time.now()
-            new_marker.header.frame_id = 'odom'
-            new_marker.id = i #int(fiducial_pos[i][0])
-            new_marker.ns = 'fiducials_names'
-            new_marker.type = visualization_msgs.msg.Marker.TEXT_VIEW_FACING;
-            new_marker.action = visualization_msgs.msg.Marker.ADD;
-            new_marker.text = str(fiducial_pos[0][i])
-            x = fiducial_pos[1][i]
-            y = fiducial_pos[2][i]
-            new_marker.pose.position.x = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
-            new_marker.pose.position.y = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
-            new_marker.pose.position.z = -fiducial_pos[3][i] + 0.1
-            new_marker.scale.z = 0.1
-            new_marker.color.a = 1.0
-            new_marker.color.r = 1.0
-            new_marker.color.g = 1.0
-            new_marker.color.b = 1.0
-            marker_array.markers.append(new_marker)
-        self.marker_pub.publish(marker_array)
+        self.generalizedDrawingMap(self.map_forRviz_file_name,
+            radians(self.utm_phi_value), [float(self.utm_x_value), float(self.utm_y_value)],
+            [self.joao_origin_utm_x_value, self.joao_origin_utm_y_value], self.marker_pub)
 
     """
     """
-    def transformFromLastGPS(self, lat, long, direction_vector):
-        print('nothing yet')
+    # Screen in RViz a map
+    # Input:    data_path: path of the map from camera is 1500
+    #           angleMap: compare to the east for x-axis in RAD
+    #           originMapInUTM: Origin of the camera (usually #100) in UTM coordinates
+    #           originGeneralUTM: Joao's origin
+    # Output: screen map on RViz
+    def generalizedDrawingMap(self, data_path, angleMap, originMapInUTM, originGeneralUTM, publisher):
+                data = pd.read_csv(data_path, header=None, sep=' ', skipinitialspace=True, low_memory=False, skiprows=3)
+                fiducial_pos = data.values[:,1], data.values[:,14], -data.values[:,15], data.values[:,16] #concatanate the vector
+                self.fiducials_map = fiducial_pos
+                # delete all fiducial
+                marker_array = visualization_msgs.msg.MarkerArray()
+                new_marker = visualization_msgs.msg.Marker()
+                new_marker.header.stamp = rospy.Time.now()
+                # Set frame id
+                new_marker.header.frame_id = 'odom'
+                new_marker.ns = 'fiducials_pos'
+                new_marker.action = visualization_msgs.msg.Marker.DELETEALL;
+                marker_array.markers.append(new_marker)
+                publisher.publish(marker_array)
+
+                joao_x = originGeneralUTM[0]#self.joao_origin_utm_x_value#468655
+                joao_y = originGeneralUTM[1]#self.joao_origin_utm_y_value#5264080
+                gps_origin_map_x = originMapInUTM[0]#float(self.utm_x_value)#468598.24
+                gps_origin_map_y = originMapInUTM[1]#float(self.utm_y_value)#5264012.01
+
+                # Calculate the size of the fiducials matrix
+                length = len(fiducial_pos[0]) - 1
+                # Fiducial points to RVIZ
+                marker_array = visualization_msgs.msg.MarkerArray()
+                for i in range(0, length,3):
+                    new_marker = visualization_msgs.msg.Marker()
+                    new_marker.header.stamp = rospy.Time.now()
+                    new_marker.header.frame_id = 'odom'
+                    new_marker.id = i #int(fiducial_pos[i][0])
+                    new_marker.ns = 'fiducials position'
+                    new_marker.type = visualization_msgs.msg.Marker.SPHERE;
+                    new_marker.action = visualization_msgs.msg.Marker.ADD;
+                    x = fiducial_pos[1][i]
+                    y = fiducial_pos[2][i]
+                    new_marker.pose.position.x = x * np.cos(angleMap) - y * np.sin(angleMap) + gps_origin_map_x - joao_x
+                    new_marker.pose.position.y = x * np.sin(angleMap) + y * np.cos(angleMap) + gps_origin_map_y - joao_y
+                    print('( ', new_marker.pose.position.x, ', ', new_marker.pose.position.y, ') ')
+                    new_marker.pose.position.z = -fiducial_pos[3][i]
+                    quat = tf.transformations.quaternion_from_euler(0, 0, 0)# TODO set the angle
+                    new_marker.pose.orientation.x = quat[0]
+                    new_marker.pose.orientation.y = quat[1]
+                    new_marker.pose.orientation.z = quat[2]
+                    new_marker.pose.orientation.w = quat[3]
+                    new_marker.scale.x = 0.05
+                    new_marker.scale.y = 0.05
+                    new_marker.scale.z = 0.05
+                    new_marker.color.a = 1.0
+                    new_marker.color.r = 1.0
+                    new_marker.color.g = 0.0
+                    new_marker.color.b = 0.0
+                    marker_array.markers.append(new_marker)
+                publisher.publish(marker_array)
+
+                # Fiducial names
+                marker_array = visualization_msgs.msg.MarkerArray()
+                for i in range(0, length, 3):
+                    new_marker = visualization_msgs.msg.Marker()
+                    new_marker.header.stamp = rospy.Time.now()
+                    new_marker.header.frame_id = 'odom'
+                    new_marker.id = i #int(fiducial_pos[i][0])
+                    new_marker.ns = 'fiducials_names'
+                    new_marker.type = visualization_msgs.msg.Marker.TEXT_VIEW_FACING;
+                    new_marker.action = visualization_msgs.msg.Marker.ADD;
+                    new_marker.text = str(fiducial_pos[0][i])
+                    x = fiducial_pos[1][i]
+                    y = fiducial_pos[2][i]
+                    new_marker.pose.position.x = x * np.cos(angleMap) - y * np.sin(angleMap) + gps_origin_map_x - joao_x
+                    new_marker.pose.position.y = x * np.sin(angleMap) + y * np.cos(angleMap) + gps_origin_map_y - joao_y
+                    new_marker.pose.position.z = -fiducial_pos[3][i] + 0.1
+                    new_marker.scale.z = 0.1
+                    new_marker.color.a = 1.0
+                    new_marker.color.r = 1.0
+                    new_marker.color.g = 1.0
+                    new_marker.color.b = 1.0
+                    marker_array.markers.append(new_marker)
+                publisher.publish(marker_array)
+
+    """
+    """
+
+    def transformFromLastGPS(self, positionYaw, lastUTM):
+        # TODO: Check where is these angles
+        angle_btwXcam_East = radians(0.0) # 0 = align with east for x and north = y
+        last_gps_yaw = radians(0.0) #in radians
+        wheel_odom_distance = 5.0  # meter
+        if(self.init_transf == False):
+            # Use east as x-axis
+            direction_vecteur = [float(wheel_odom_distance * np.cos(last_gps_yaw)), float(wheel_odom_distance * np.sin(last_gps_yaw))]
+            # Robot position in UTM inside the map
+            first_robot_x = lastUTM[0] + direction_vecteur[0]
+            first_robot_y = lastUTM[1] + direction_vecteur[1]
+            # Rotation from camera frame to UTM
+            rotated_x = positionYaw[0]  * np.cos(angle_btwXcam_East) - positionYaw[1] * np.sin(angle_btwXcam_East)
+            rotated_y = positionYaw[0]  * np.sin(angle_btwXcam_East) + positionYaw[1] * np.cos(angle_btwXcam_East)
+            self.origin_cam_x = first_robot_x - rotated_x
+            self.origin_cam_y = first_robot_y - rotated_y
+            # Draw the selected map
+            self.generalizedDrawingMap(self.map_forRviz_file_name,
+                angle_btwXcam_East, [self.origin_cam_x, self.origin_cam_y],
+                [self.joao_origin_utm_x_value, self.joao_origin_utm_y_value],
+                self.currentMap_marker_pub)
+            self.init_transf = True
+        # print(origin_cam_x, ', ', origin_cam_x)
+        x = positionYaw[0]
+        y = positionYaw[1]
+        yaw = positionYaw[2]
+        # Rotation from camera frame to UTM
+        # Translation
+        x_prim = x * np.cos(angle_btwXcam_East) - y * np.sin(angle_btwXcam_East) + self.origin_cam_x - self.joao_origin_utm_x_value
+        y_prim = x * np.sin(angle_btwXcam_East) + y * np.cos(angle_btwXcam_East) + self.origin_cam_y - self.joao_origin_utm_y_value
+        yaw_prim = yaw
+        return x_prim, y_prim, yaw_prim
     """
     """
     def indoor_isCheck(self):
         self.indoor = self._widget.indoor_checkBox_edit.isChecked()
-
     """
     """
     def publish_transform_pos(self, msg):
-        print 'Inside function'
         if self.indoor:
-            #print(msg.pose.pose.position.x, ', ', msg.pose.pose.position.y)
-            x = msg.pose.pose.position.x
-            y = msg.pose.pose.position.y
-            # angle btw north and the direction of the door
+
             phi_degrees = float(self.utm_phi_value)
             phi = phi_degrees/360 * 2 * 3.14
-            joao_x = self.joao_origin_utm_x_value#468655
-            joao_y = self.joao_origin_utm_y_value#5264080
-            gps_origin_map_x = float(self.utm_x_value)#468598.24
-            gps_origin_map_y = float(self.utm_y_value)#5264012.01
-            print('Indoor')
+            # Angle in rad
+            (roll, pitch, yaw_before) = tf.transformations.euler_from_quaternion(
+                [msg.pose.pose.orientation.x, msg.pose.pose.orientation.y,
+                msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])
+
+            # Transform the camera data for Rviz
+            # 468655
+            # 5264080
+            # 468598.24
+            # 5264012.01
+            x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
+                msg.pose.pose.position.y, yaw_before], [468655.0, 5264080.0])
+
             odom = Odometry()
             odom.header.stamp = rospy.Time.now()
             odom.header.frame_id = 'odom'
             odom.child_frame_id = 'base_link'
-            odom.pose.pose.position.x = x * np.cos(phi) - y * np.sin(phi) + gps_origin_map_x - joao_x
-            odom.pose.pose.position.y = x * np.sin(phi) + y * np.cos(phi) + gps_origin_map_y - joao_y
+            odom.pose.pose.position.x = x
+            odom.pose.pose.position.y = y
             odom.pose.pose.position.z = 0
-            odom.pose.pose.orientation = msg.pose.pose.orientation
-            # odom.header.stamp = rospy.Time.now()
-    		# odom.header.frame_id = 'odom'
-    		# odom.child_frame_id = 'base_link'
-    		# odom.pose.pose.position.x = msg.pose.pose.position.x#utm_pos.easting - self.origin.x
-    		# odom.pose.pose.position.y = msg.pose.pose.position.y#utm_pos.northing - self.origin.y
-    		# odom.pose.pose.position.z = 0
-            #
-    		# # Orientation
-    		# self.orientation = msg.pose.pose.orientation
+
+            odom.pose.pose.orientation = Quaternion(
+                *tf.transformations.quaternion_from_euler(0, 0, yaw))
+            # publisher
             self.transform_cameraPos_pub.publish(odom)
 
-        else:
-            print('Outdoor')
+        # else:
+        #     print('Outdoor')
