@@ -357,6 +357,13 @@
               </property>
             </widget>
           </item>
+          <item row="3" column="1">
+            <widget class="QPushButton" name="reset_init_map_file_button">
+              <property name="text">
+                <string>Reset Map</string>
+              </property>
+            </widget>
+          </item>
         </layout>
       </widget>
     </item>

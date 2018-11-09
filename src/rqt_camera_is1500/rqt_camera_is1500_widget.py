@@ -92,9 +92,9 @@ class Camera_is1500_Widget(Plugin):
         self.utm_phi_value = float(self._widget.utm_phi_edit.text())
         self.joao_origin_utm_x_value = float(self._widget.joao_origin_utm_x_edit.text())
         self.joao_origin_utm_y_value = float(self._widget.joao_origin_utm_y_edit.text())
-        self.fiducials_map = []
+        self.fiducials_map = [] # contain the position of the fiducial in camera frame
         self.indoor = self._widget.indoor_checkBox_edit.isChecked()
-        self.init_transf = False
+        self.init_transf = False # True if map already drew
         self.origin_cam_x = 0.0
         self.origin_cam_y = 0.0
         """
@@ -164,6 +164,7 @@ class Camera_is1500_Widget(Plugin):
         self._widget.joao_origin_utm_x_edit.textChanged.connect(self.joao_origin_utm_x_change)
         self._widget.joao_origin_utm_y_edit.textChanged.connect(self.joao_origin_utm_y_change)
         self._widget.indoor_checkBox_edit.stateChanged.connect(self.indoor_isCheck)
+        self._widget.reset_init_map_file_button.released.connect(self.reset_init_change)
 
         # Buttons
         self._widget.map_to_rviz_send_file_button.released.connect(self.visualize_fiducials)
@@ -172,8 +173,8 @@ class Camera_is1500_Widget(Plugin):
         """
         ROS
         """
-        self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10)
-        self.currentMap_marker_pub = rospy.Publisher('/fiducials_position_current', visualization_msgs.msg.MarkerArray, queue_size=10)
+        self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10) # publish fiducials for a chosen map
+        self.currentMap_marker_pub = rospy.Publisher('/fiducials_position_current', visualization_msgs.msg.MarkerArray, queue_size=10)#publish currend used fiducials
         # self.camera_pos_sub = rospy.Subscriber("/base_link_odom_camera_is1500", Odometry, self.publish_transform_pos)
         self.camera_pos_sub = rospy.Subscriber("/position_camera_is1500", Odometry, self.publish_transform_pos)
         self.transform_cameraPos_pub = rospy.Publisher('/transform_cameraPos_pub', Odometry, queue_size=1)
@@ -352,6 +353,21 @@ class Camera_is1500_Widget(Plugin):
                 self._widget.map_to_rviz_path_edit.setText(self.map_forRviz_file_name)
     """
     """
+    # init the map changement
+    def reset_init_change(self):
+        self.init_transf = False
+        # delete all fiducial
+        marker_array = visualization_msgs.msg.MarkerArray()
+        new_marker = visualization_msgs.msg.Marker()
+        new_marker.header.stamp = rospy.Time.now()
+        # Set frame id
+        new_marker.header.frame_id = 'odom'
+        new_marker.ns = 'fiducials_pos'
+        new_marker.action = visualization_msgs.msg.Marker.DELETEALL;
+        marker_array.markers.append(new_marker)
+        self.currentMap_marker_pub.publish(marker_array)
+    """
+    """
     # Screen in RViz a selected map in chosen position when button is preshed
     def visualize_fiducials(self, event=None):
         self.generalizedDrawingMap(self.map_forRviz_file_name,
@@ -448,18 +464,20 @@ class Camera_is1500_Widget(Plugin):
 
     def transformFromLastGPS(self, positionYaw, lastUTM):
         # TODO: Check where is these angles
-        angle_btwXcam_East = radians(0.0) # 0 = align with east for x and north = y
+        angle_btwXcam_East = radians(self.utm_phi_value)#45.0) # 0 = align with east for x and north = y
         last_gps_yaw = radians(0.0) #in radians
-        wheel_odom_distance = 5.0  # meter
+        wheel_odom_distance = 0.0  # meter
+
+        # if the map is already drew... just send the transfrom position
         if(self.init_transf == False):
-            # Use east as x-axis
+            # Use East as x-axis
             direction_vecteur = [float(wheel_odom_distance * np.cos(last_gps_yaw)), float(wheel_odom_distance * np.sin(last_gps_yaw))]
             # Robot position in UTM inside the map
             first_robot_x = lastUTM[0] + direction_vecteur[0]
             first_robot_y = lastUTM[1] + direction_vecteur[1]
             # Rotation from camera frame to UTM
-            rotated_x = positionYaw[0]  * np.cos(angle_btwXcam_East) - positionYaw[1] * np.sin(angle_btwXcam_East)
-            rotated_y = positionYaw[0]  * np.sin(angle_btwXcam_East) + positionYaw[1] * np.cos(angle_btwXcam_East)
+            rotated_x = positionYaw[0]  * np.cos(angle_btwXcam_East) - (-1) * positionYaw[1] * np.sin(angle_btwXcam_East)
+            rotated_y = positionYaw[0]  * np.sin(angle_btwXcam_East) + (-1) * positionYaw[1] * np.cos(angle_btwXcam_East)
             self.origin_cam_x = first_robot_x - rotated_x
             self.origin_cam_y = first_robot_y - rotated_y
             # Draw the selected map
@@ -474,9 +492,10 @@ class Camera_is1500_Widget(Plugin):
         yaw = positionYaw[2]
         # Rotation from camera frame to UTM
         # Translation
-        x_prim = x * np.cos(angle_btwXcam_East) - y * np.sin(angle_btwXcam_East) + self.origin_cam_x - self.joao_origin_utm_x_value
-        y_prim = x * np.sin(angle_btwXcam_East) + y * np.cos(angle_btwXcam_East) + self.origin_cam_y - self.joao_origin_utm_y_value
-        yaw_prim = yaw
+        x_prim = x * np.cos(angle_btwXcam_East) -(-1) * y * np.sin(angle_btwXcam_East) + self.origin_cam_x - self.joao_origin_utm_x_value
+        # ATTENTION: ADD a minus here on y position to be on the map
+        y_prim = (x * np.sin(angle_btwXcam_East) +(-1) * y * np.cos(angle_btwXcam_East)) + self.origin_cam_y - self.joao_origin_utm_y_value
+        yaw_prim = -yaw + angle_btwXcam_East # TRUE !!!
         return x_prim, y_prim, yaw_prim
     """
     """
@@ -485,10 +504,8 @@ class Camera_is1500_Widget(Plugin):
     """
     """
     def publish_transform_pos(self, msg):
-        if self.indoor:
 
-            phi_degrees = float(self.utm_phi_value)
-            phi = phi_degrees/360 * 2 * 3.14
+        if self.indoor:
             # Angle in rad
             (roll, pitch, yaw_before) = tf.transformations.euler_from_quaternion(
                 [msg.pose.pose.orientation.x, msg.pose.pose.orientation.y,
@@ -500,7 +517,7 @@ class Camera_is1500_Widget(Plugin):
             # 468598.24
             # 5264012.01
             x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
-                msg.pose.pose.position.y, yaw_before], [468655.0, 5264080.0])
+                msg.pose.pose.position.y, yaw_before], [468655.0+0.0, 5264080.0-0.0])
 
             odom = Odometry()
             odom.header.stamp = rospy.Time.now()
@@ -509,7 +526,7 @@ class Camera_is1500_Widget(Plugin):
             odom.pose.pose.position.x = x
             odom.pose.pose.position.y = y
             odom.pose.pose.position.z = 0
-
+            # Don't forget the "Quaternion()" and *
             odom.pose.pose.orientation = Quaternion(
                 *tf.transformations.quaternion_from_euler(0, 0, yaw))
             # publisher
