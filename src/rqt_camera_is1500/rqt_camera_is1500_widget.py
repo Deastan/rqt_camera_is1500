@@ -100,6 +100,7 @@ class Camera_is1500_Widget(Plugin):
         self.last_robot_x_edit = 0.0#float(self._widget.get_pos_robot_x_edit.text())
         self.last_robot_y_edit = 0.0#float(self._widget.get_pos_robot_y_edit.text())
         self.last_robot_yaw_edit = 0.0#float(self._widget.get_pos_robot_yaw_edit.text())
+        self.angle_btwXcam_East = 0.0
         """
         Connect stuff here
         """
@@ -493,12 +494,14 @@ class Camera_is1500_Widget(Plugin):
 
     def transformFromLastGPS(self, positionYaw, lastUTM):
         # TODO: Check where is these angles
-        angle_btwXcam_East = radians(self.utm_phi_value)#45.0) # 0 = align with east for x and north = y
+        # global angle_btwXcam_East = positionYaw[2] #radians(self.last_robot_yaw_edit)#radians(self.utm_phi_value)#45.0) # 0 = align with east for x and north = y
+        angle_btwXcam_East = self.angle_btwXcam_East
         last_gps_yaw = radians(0.0) #in radians
         wheel_odom_distance = 3.0  # meter
 
         # if the map is already drew... just send the transfrom position
         if(self.init_transf == False):
+            self.angle_btwXcam_East = positionYaw[2]
             # Use East as x-axis
             direction_vecteur = [float(wheel_odom_distance * np.cos(last_gps_yaw)), float(wheel_odom_distance * np.sin(last_gps_yaw))]
             # Robot position in UTM inside the map
@@ -549,7 +552,7 @@ class Camera_is1500_Widget(Plugin):
 
 
             x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
-                msg.pose.pose.position.y, radians(self.last_robot_yaw_edit)], [468655.0+self.last_robot_x_edit, 5264080.0+self.last_robot_y_edit])
+                msg.pose.pose.position.y, yaw_before], [468655.0+self.last_robot_x_edit, 5264080.0+self.last_robot_y_edit])
             # x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
             #     msg.pose.pose.position.y, yaw_before], [468655.0+3.0, 5264080.0-1.0])
 
