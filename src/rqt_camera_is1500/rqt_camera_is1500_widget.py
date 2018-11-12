@@ -194,9 +194,10 @@ class Camera_is1500_Widget(Plugin):
 
     def start_supervisor_launchFile(self):
         # cmd = "gnome-terminal -x sh -c 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && roslaunch supervisor supervisor.launch"
-        cmd = "gnome-terminal -x sh -c 'cd && cd /home/ew/catkin_ws/ && source devel/setup.bash && roslaunch supervisor supervisor.launch"
+        # cmd = "gnome-terminal -x sh -c 'cd && cd /home/ew/catkin_ws/ && source devel/setup.bash && roslaunch supervisor supervisor.launch'"
+        # cmd = '/home/ew/catkin_ws/src/rqt_camera_is1500/script/supervisor.bash'
 
-        subprocess.call(cmd, shell=True)
+        subprocess.call('/home/ew/catkin_ws/src/rqt_camera_is1500/script/supervisor.bash', shell=True)
         self._widget.launch_supervisor_color_label.setStyleSheet("background-color:#228B22;")
 
     def start_rviz(self):
