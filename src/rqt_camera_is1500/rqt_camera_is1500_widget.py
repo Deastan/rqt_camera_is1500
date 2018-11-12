@@ -186,19 +186,23 @@ class Camera_is1500_Widget(Plugin):
     """
     def start_camera_is1500_launchFile(self):
         # os.spawnl(os.P_NOWAIT, 'sudo shutdown && 123456')
-        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/script/camera_is1500.bash', shell=True)
+        # subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/script/camera_is1500.bash', shell=True)
+        subprocess.call('/home/ew/catkin_ws/src/rqt_camera_is1500/script/camera_is1500.bash', shell=True)
         # os.spawnl(os.P_NOWAIT, 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && cd src/camera_is1500/launch/ && roslaunch camera_is1500 cameraTry.launch')
         # print 'Node: Camera_is1500 launched'
         self._widget.color_launch_camera_label.setStyleSheet("background-color:#228B22;")
 
     def start_supervisor_launchFile(self):
-        cmd = "gnome-terminal -x sh -c 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && roslaunch supervisor supervisor.launch"
+        # cmd = "gnome-terminal -x sh -c 'cd && cd /home/jonathan/catkin_ws_kyb/ && source devel/setup.bash && roslaunch supervisor supervisor.launch"
+        cmd = "gnome-terminal -x sh -c 'cd && cd /home/ew/catkin_ws/ && source devel/setup.bash && roslaunch supervisor supervisor.launch"
+
         subprocess.call(cmd, shell=True)
         self._widget.launch_supervisor_color_label.setStyleSheet("background-color:#228B22;")
 
     def start_rviz(self):
         self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
-        subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/script/rviz.bash', shell=True)
+        # subprocess.call('/home/jonathan/catkin_ws_kyb/src/rqt_camera_is1500/script/rviz.bash', shell=True)
+        subprocess.call('/home/ew/catkin_ws/src/rqt_camera_is1500/script/rviz.bash', shell=True)
         # print 'RViz launched'
         self._widget.color_rviz_label.setStyleSheet("background-color:#228B22;")
     def test_button_function(self):
