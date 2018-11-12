@@ -175,8 +175,8 @@ class Camera_is1500_Widget(Plugin):
         """
         self.marker_pub = rospy.Publisher('/fiducials_position', visualization_msgs.msg.MarkerArray, queue_size=10) # publish fiducials for a chosen map
         self.currentMap_marker_pub = rospy.Publisher('/fiducials_position_current', visualization_msgs.msg.MarkerArray, queue_size=10)#publish currend used fiducials
-        # self.camera_pos_sub = rospy.Subscriber("/base_link_odom_camera_is1500", Odometry, self.publish_transform_pos)
-        self.camera_pos_sub = rospy.Subscriber("/position_camera_is1500", Odometry, self.publish_transform_pos)
+        self.camera_pos_sub = rospy.Subscriber("/base_link_odom_camera_is1500", Odometry, self.publish_transform_pos)
+        # self.camera_pos_sub = rospy.Subscriber("/position_camera_is1500", Odometry, self.publish_transform_pos)
         self.transform_cameraPos_pub = rospy.Publisher('/transform_cameraPos_pub', Odometry, queue_size=1)
         # rospy.spin()
         # empty yet
