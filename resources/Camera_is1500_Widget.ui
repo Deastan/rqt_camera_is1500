@@ -364,6 +364,55 @@
               </property>
             </widget>
           </item>
+          <item row="4" column="1">
+            <widget class="QPushButton" name="get_position_button">
+              <property name="text">
+                <string>Get robot's position</string>
+              </property>
+            </widget>
+          </item>
+          <item row="4" column="2">
+            <widget class="QLabel" name="get_pos_robot_x_label">
+              <property name="text">
+               <string>Last x: </string>
+              </property>
+            </widget>
+          </item>
+          <item  row="4" column="3">
+            <widget class="QLineEdit" name="get_pos_robot_x_edit">
+              <property name="text">
+                <string>3.0</string>
+              </property>
+            </widget>
+          </item>
+          <item row="4" column="4">
+            <widget class="QLabel" name="get_pos_robot_y_label">
+              <property name="text">
+               <string>Last y: </string>
+              </property>
+            </widget>
+          </item>
+          <item  row="4" column="5">
+            <widget class="QLineEdit" name="get_pos_robot_y_edit">
+              <property name="text">
+                <string>1.0</string>
+              </property>
+            </widget>
+          </item>
+          <item row="4" column="6">
+            <widget class="QLabel" name="get_pos_robot_yaw_label">
+              <property name="text">
+               <string>Last yaw: </string>
+              </property>
+            </widget>
+          </item>
+          <item  row="4" column="7">
+            <widget class="QLineEdit" name="get_pos_robot_yaw_edit">
+              <property name="text">
+                <string>0.0</string>
+              </property>
+            </widget>
+          </item>
         </layout>
       </widget>
     </item>

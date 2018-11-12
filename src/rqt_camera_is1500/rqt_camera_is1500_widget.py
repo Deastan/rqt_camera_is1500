@@ -97,6 +97,9 @@ class Camera_is1500_Widget(Plugin):
         self.init_transf = False # True if map already drew
         self.origin_cam_x = 0.0
         self.origin_cam_y = 0.0
+        self.last_robot_x_edit = 0.0#float(self._widget.get_pos_robot_x_edit.text())
+        self.last_robot_y_edit = 0.0#float(self._widget.get_pos_robot_y_edit.text())
+        self.last_robot_yaw_edit = 0.0#float(self._widget.get_pos_robot_yaw_edit.text())
         """
         Connect stuff here
         """
@@ -165,6 +168,10 @@ class Camera_is1500_Widget(Plugin):
         self._widget.joao_origin_utm_y_edit.textChanged.connect(self.joao_origin_utm_y_change)
         self._widget.indoor_checkBox_edit.stateChanged.connect(self.indoor_isCheck)
         self._widget.reset_init_map_file_button.released.connect(self.reset_init_change)
+        self._widget.get_position_button.released.connect(self.get_pos_change)
+        self._widget.get_pos_robot_x_edit.setValidator(QDoubleValidator())
+        self._widget.get_pos_robot_y_edit.setValidator(QDoubleValidator())
+        self._widget.get_pos_robot_yaw_edit.setValidator(QDoubleValidator())
 
         # Buttons
         self._widget.map_to_rviz_send_file_button.released.connect(self.visualize_fiducials)
@@ -178,6 +185,8 @@ class Camera_is1500_Widget(Plugin):
         self.camera_pos_sub = rospy.Subscriber("/base_link_odom_camera_is1500", Odometry, self.publish_transform_pos)
         # self.camera_pos_sub = rospy.Subscriber("/position_camera_is1500", Odometry, self.publish_transform_pos)
         self.transform_cameraPos_pub = rospy.Publisher('/transform_cameraPos_pub', Odometry, queue_size=1)
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listner = tf2_ros.TransformListener(self.tf_buffer)
         # rospy.spin()
         # empty yet
 
@@ -378,6 +387,21 @@ class Camera_is1500_Widget(Plugin):
         self.generalizedDrawingMap(self.map_forRviz_file_name,
             radians(self.utm_phi_value), [float(self.utm_x_value), float(self.utm_y_value)],
             [self.joao_origin_utm_x_value, self.joao_origin_utm_y_value], self.marker_pub)
+    """
+    """
+    def get_pos_change(self):
+        trans = self.tf_buffer.lookup_transform('odom', 'base_link', rospy.Time())
+
+        self._widget.get_pos_robot_x_edit.setText(str(trans.transform.translation.x))
+        self._widget.get_pos_robot_y_edit.setText(str(trans.transform.translation.y))
+
+        self.last_robot_x_edit = float(self._widget.get_pos_robot_x_edit.text())
+        self.last_robot_y_edit = float(self._widget.get_pos_robot_y_edit.text())
+
+        quat = trans.transform.rotation
+        (roll, pitch, yaw) = tf.transformations.euler_from_quaternion((quat.x, quat.y, quat.z, quat.w))
+        self._widget.get_pos_robot_yaw_edit.setText(str(yaw/2/3.14*360))
+        self.last_robot_yaw_edit = float(self._widget.get_pos_robot_yaw_edit.text())
 
     """
     """
@@ -471,7 +495,7 @@ class Camera_is1500_Widget(Plugin):
         # TODO: Check where is these angles
         angle_btwXcam_East = radians(self.utm_phi_value)#45.0) # 0 = align with east for x and north = y
         last_gps_yaw = radians(0.0) #in radians
-        wheel_odom_distance = 0.0  # meter
+        wheel_odom_distance = 3.0  # meter
 
         # if the map is already drew... just send the transfrom position
         if(self.init_transf == False):
@@ -500,7 +524,7 @@ class Camera_is1500_Widget(Plugin):
         x_prim = x * np.cos(angle_btwXcam_East) -(-1) * y * np.sin(angle_btwXcam_East) + self.origin_cam_x - self.joao_origin_utm_x_value
         # ATTENTION: ADD a minus here on y position to be on the map
         y_prim = (x * np.sin(angle_btwXcam_East) +(-1) * y * np.cos(angle_btwXcam_East)) + self.origin_cam_y - self.joao_origin_utm_y_value
-        yaw_prim = -yaw + angle_btwXcam_East # TRUE !!!
+        yaw_prim = -yaw + angle_btwXcam_East # Right !!!
         return x_prim, y_prim, yaw_prim
     """
     """
@@ -521,8 +545,13 @@ class Camera_is1500_Widget(Plugin):
             # 5264080
             # 468598.24
             # 5264012.01
+
+
+
             x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
-                msg.pose.pose.position.y, yaw_before], [468655.0+0.0, 5264080.0-0.0])
+                msg.pose.pose.position.y, radians(self.last_robot_yaw_edit)], [468655.0+self.last_robot_x_edit, 5264080.0+self.last_robot_y_edit])
+            # x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
+            #     msg.pose.pose.position.y, yaw_before], [468655.0+3.0, 5264080.0-1.0])
 
             odom = Odometry()
             odom.header.stamp = rospy.Time.now()
