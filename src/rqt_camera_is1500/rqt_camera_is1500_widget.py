@@ -75,6 +75,12 @@ class Camera_is1500_Widget(Plugin):
         context.add_widget(self._widget)
 
         """
+        Start nodes
+        """
+        self.target_x = 0.0
+        self.target_y = 0.0
+        self.distance_x = 0.0
+        """
         MAP path for is1500 package
         """
         self.map_path_name = ''
@@ -110,13 +116,20 @@ class Camera_is1500_Widget(Plugin):
         # self._widget.in_case_edit.setValidator(QDoubleValidator())
         # self._widget.y_edit.setValidator(QDoubleValidator())
         # self._widget.map_name_edit.setValidator()
-
+        """
+        Start nodes
+        """
         self._widget.launch_camera_start_button.released.connect(self.start_camera_is1500_launchFile)
         self._widget.color_launch_camera_label.setStyleSheet("background-color:#ff0000;")
         self._widget.launch_supervisor_start_button.released.connect(self.start_supervisor_launchFile)
         self._widget.launch_supervisor_color_label.setStyleSheet("background-color:#ff0000;")
         self._widget.rviz_start_button.released.connect(self.start_rviz)
         self._widget.color_rviz_label.setStyleSheet("background-color:#ff0000;")
+
+        self._widget.target_start_button.released.connect(self.target_waypontPy_run)
+        self._widget.color_target_label.setStyleSheet("background-color:#ff0000;")
+        self._widget.distance_start_button.released.connect(self.distance_throughDeadZone_run)
+        self._widget.color_distance_label.setStyleSheet("background-color:#ff0000;")
 
         self._widget.test_button.released.connect(self.test_button_function)
 
@@ -216,6 +229,23 @@ class Camera_is1500_Widget(Plugin):
         subprocess.call('/home/ew/catkin_ws/src/rqt_camera_is1500/script/rviz.bash', shell=True)
         # print 'RViz launched'
         self._widget.color_rviz_label.setStyleSheet("background-color:#228B22;")
+
+    def target_waypontPy_run(self):
+        self.target_x = float(self._widget.target_x_edit.text())
+        self.target_y = float(self._widget.target_y_edit.text())
+        # cmd = ""
+        # gnome-terminal -x sh -c  'rosparam set /camera_is1500_node/mapNumber 1'
+        cmd = "gnome-terminal -x sh -c  \'rosrun camera_is1500 waypoint_node.py %d %d \' " % (float(self.target_x), float(self.target_y))
+        subprocess.call(cmd, shell=True)
+        self._widget.color_target_label.setStyleSheet("background-color:#228B22;")
+
+    def distance_throughDeadZone_run(self):
+        self.distance_x = float(self._widget.distance_x_edit.text())
+
+        cmd = "gnome-terminal -x sh -c \'rosrun camera_is1500 throughDeadZone.py %d \' " % (float(self.distance_x))
+        subprocess.call(cmd, shell=True)
+        self._widget.color_distance_label.setStyleSheet("background-color:#228B22;")
+
     def test_button_function(self):
         print('Checkbox: ', self.indoor)
 
