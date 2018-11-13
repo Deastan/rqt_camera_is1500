@@ -15,6 +15,7 @@ import tf2_ros
 import tf2_geometry_msgs
 import geometry_msgs.msg
 import visualization_msgs.msg
+from camera_is1500.msg import GetPointsFromMetric
 
 import tf.transformations
 from geometry_msgs.msg import Quaternion, Point, Pose, Twist, Vector3
@@ -201,6 +202,9 @@ class Camera_is1500_Widget(Plugin):
         self.transform_cameraPos_pub = rospy.Publisher('/transform_cameraPos_pub', Odometry, queue_size=1)
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listner = tf2_ros.TransformListener(self.tf_buffer)
+
+        self.fromMetric_sub = rospy.Subscriber('/pointsFromMetric', GetPointsFromMetric, self.publish_metric_to_rviz)
+        self.transform_metric_pub = rospy.Publisher('/rviz_pointsFromMetric', visualization_msgs.msg.Marker, queue_size=10)
         # rospy.spin()
         # empty yet
 
@@ -241,9 +245,10 @@ class Camera_is1500_Widget(Plugin):
 
     def distance_throughDeadZone_run(self):
         self.distance_x = float(self._widget.distance_x_edit.text())
-
         cmd = "gnome-terminal -x sh -c \'rosrun camera_is1500 throughDeadZone.py %d \' " % (float(self.distance_x))
-        subprocess.call(cmd, shell=True)
+
+        # cmd = "rosrun camera_is1500 throughDeadZone.py %d" % (float(self.distance_x))
+        subprocess.call(str(cmd), shell=True)
         self._widget.color_distance_label.setStyleSheet("background-color:#228B22;")
 
     def test_button_function(self):
@@ -601,3 +606,35 @@ class Camera_is1500_Widget(Plugin):
 
         # else:
         #     print('Outdoor')
+
+    """
+    Metric
+    """
+    def publish_metric_to_rviz(self, msg):
+        # print ("Receive something")
+
+        if self.indoor:
+            x, y, yaw = self.transformFromLastGPS([msg.x,
+                msg.x, 0.0], [468655.0+self.last_robot_x_edit, 5264080.0+self.last_robot_y_edit])
+            # x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
+            #     msg.pose.pose.position.y, yaw_before], [468655.0+3.0, 5264080.0-1.0])
+
+            new_marker = visualization_msgs.msg.Marker()
+            new_marker.header.stamp = rospy.Time.now()
+            new_marker.header.frame_id = 'odom'
+            new_marker.ns = 'Position issue'
+            new_marker.type = visualization_msgs.msg.Marker.TEXT_VIEW_FACING;
+            new_marker.action = visualization_msgs.msg.Marker.ADD;
+            new_marker.text = str(msg.cost)
+
+            new_marker.pose.position.x = x
+            new_marker.pose.position.y = y
+            new_marker.pose.position.z = 0.0
+            new_marker.scale.z = 0.2
+            new_marker.color.a = 1.0
+            new_marker.color.r = 1.0
+            new_marker.color.g = 0.0
+            new_marker.color.b = 0.0
+
+            # publisher
+            self.transform_metric_pub.publish(new_marker)
