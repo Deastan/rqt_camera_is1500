@@ -618,7 +618,7 @@ class Camera_is1500_Widget(Plugin):
 
         if self.indoor:
             x, y, yaw = self.transformFromLastGPS([msg.x,
-                msg.x, 0.0], [468655.0+self.last_robot_x_edit, 5264080.0+self.last_robot_y_edit])
+                msg.y, 0.0], [468655.0+self.last_robot_x_edit, 5264080.0+self.last_robot_y_edit])
             # x, y, yaw = self.transformFromLastGPS([msg.pose.pose.position.x,
             #     msg.pose.pose.position.y, yaw_before], [468655.0+3.0, 5264080.0-1.0])
 
@@ -633,6 +633,8 @@ class Camera_is1500_Widget(Plugin):
             new_marker.pose.position.x = x
             new_marker.pose.position.y = y
             new_marker.pose.position.z = 0.0
+            new_marker.scale.x = 0.5
+            new_marker.scale.y = 0.5
             new_marker.scale.z = 0.5
             new_marker.color.a = 1.0
             new_marker.color.r = 0.0
