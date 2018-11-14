@@ -253,6 +253,8 @@ class Camera_is1500_Widget(Plugin):
 
     def test_button_function(self):
         print('Checkbox: ', self.indoor)
+         # def toggleLeftWidget(self):
+        # self.map_import_layout.setHidden(not self.map_import_layout.isHidden())
 
     """
     Node param settings
@@ -532,7 +534,8 @@ class Camera_is1500_Widget(Plugin):
         # global angle_btwXcam_East = positionYaw[2] #radians(self.last_robot_yaw_edit)#radians(self.utm_phi_value)#45.0) # 0 = align with east for x and north = y
         angle_btwXcam_East = self.angle_btwXcam_East
         last_gps_yaw = radians(0.0) #in radians
-        wheel_odom_distance = 3.0  # meter
+        self.distance_x = float(self._widget.distance_x_edit.text())
+        wheel_odom_distance = (float(self.distance_x))#3.0  # meter
 
         # if the map is already drew... just send the transfrom position
         if(self.init_transf == False):
@@ -623,17 +626,36 @@ class Camera_is1500_Widget(Plugin):
             new_marker.header.stamp = rospy.Time.now()
             new_marker.header.frame_id = 'odom'
             new_marker.ns = 'Position issue'
-            new_marker.type = visualization_msgs.msg.Marker.TEXT_VIEW_FACING;
+            new_marker.type = visualization_msgs.msg.Marker.SPHERE;
             new_marker.action = visualization_msgs.msg.Marker.ADD;
             new_marker.text = str(msg.cost)
 
             new_marker.pose.position.x = x
             new_marker.pose.position.y = y
             new_marker.pose.position.z = 0.0
-            new_marker.scale.z = 0.2
+            new_marker.scale.z = 0.5
             new_marker.color.a = 1.0
-            new_marker.color.r = 1.0
-            new_marker.color.g = 0.0
+            new_marker.color.r = 0.0
+            new_marker.color.g = 1.0
+            new_marker.color.b = 0.0
+
+            # publisher
+            self.transform_metric_pub.publish(new_marker)
+
+            new_marker = visualization_msgs.msg.Marker()
+            new_marker.header.stamp = rospy.Time.now()
+            new_marker.header.frame_id = 'odom'
+            new_marker.ns = 'Position issue'
+            new_marker.type = visualization_msgs.msg.Marker.TEXT_VIEW_FACING;
+            new_marker.action = visualization_msgs.msg.Marker.ADD;
+            new_marker.text = str(msg.cost)
+            new_marker.pose.position.x = x
+            new_marker.pose.position.y = y
+            new_marker.pose.position.z = 0.6
+            new_marker.scale.z = 0.8
+            new_marker.color.a = 1.0
+            new_marker.color.r = 0.0
+            new_marker.color.g = 1.0
             new_marker.color.b = 0.0
 
             # publisher

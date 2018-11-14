@@ -220,115 +220,6 @@
         </layout>
       </widget>
     </item>
-    <item> <!-- Map file selection -->
-      <widget class="QGroupBox" name="inputGroupBox">
-        <property name="title">
-           <string>Map creation</string>
-        </property>
-        <layout class="QHBoxLayout" name="map_layout">
-          <item> <!-- marker_pub details -->
-            <layout class="QGridLayout" name="details_layout">
-              <item row="0" column="0">
-                <widget class="QLabel" name="file_name_label">
-                  <property name="text">
-                   <string>Import map</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="0" column="1">
-                <widget class="QLineEdit" name="file_path_edit">
-                  <property name="text">
-                    <string></string>
-                  </property>
-                </widget>
-              </item>
-              <item row="0" column="2">
-                <widget class="QPushButton" name="file_name_button">
-                  <property name="text">
-                    <string>Open file</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="1" column="0">
-                <widget class="QLabel" name="desination_file_name_label">
-                  <property name="text">
-                   <string>Destination folder</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="1" column="1">
-                <widget class="QLineEdit" name="desination_file_name_edit">
-                  <property name="text">
-                    <string></string>
-                  </property>
-                </widget>
-              </item>
-              <item row="1" column="2">
-                <widget class="QPushButton" name="desination_file_name_button">
-                  <property name="text">
-                    <string>Choose folder</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="1" column="3">
-                <widget class="QPushButton" name="desination_save_file_button">
-                  <property name="text">
-                    <string>Save</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="2" column="0">
-                <widget class="QLabel" name="map_name_label">
-                  <property name="text">
-                   <string>Map name</string>
-                  </property>
-                </widget>
-              </item>
-              <item  row="2" column="1">
-                <widget class="QLineEdit" name="map_name_edit">
-                  <property name="text">
-                    <string></string>
-                  </property>
-                </widget>
-              </item>
-              <item row="3" column="0">
-                <widget class="QLabel" name="config_map_file_name_label">
-                  <property name="text">
-                   <string>Map config file</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="3" column="1">
-                <widget class="QLineEdit" name="config_map_file_name_edit">
-                  <property name="text">
-                    <string></string>
-                  </property>
-                </widget>
-              </item>
-              <item row="3" column="2">
-                <widget class="QPushButton" name="config_map_file_name_button">
-                  <property name="text">
-                    <string>Choose file</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="3" column="3">
-                <widget class="QPushButton" name="config_map_save_file_button">
-                  <property name="text">
-                    <string>Save</string>
-                  </property>
-                </widget>
-              </item>
-              <item  row="4" column="0">
-                <!-- <item  row="4" column="0" colspan="2"> -->
-                <widget class="QListView" name="map_from_mapYaml_list">
-                </widget>
-              </item>
-            </layout>
-          </item>
-        </layout>
-      </widget>
-    </item>
     <item> <!-- Rviz  -->
       <widget class="QGroupBox" name="inputGroupBox">
         <property name="title">
@@ -495,6 +386,115 @@
                 <string>0.0</string>
               </property>
             </widget>
+          </item>
+        </layout>
+      </widget>
+    </item>
+    <item> <!-- Map file selection -->
+      <widget class="QGroupBox" name="inputGroupBox">
+        <property name="title">
+           <string>Map creation</string>
+        </property>
+        <layout class="QHBoxLayout" name="map_import_layout">
+          <item> <!-- marker_pub details -->
+            <layout class="QGridLayout" name="details_layout">
+              <item row="0" column="0">
+                <widget class="QLabel" name="file_name_label">
+                  <property name="text">
+                   <string>Import map</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="0" column="1">
+                <widget class="QLineEdit" name="file_path_edit">
+                  <property name="text">
+                    <string></string>
+                  </property>
+                </widget>
+              </item>
+              <item row="0" column="2">
+                <widget class="QPushButton" name="file_name_button">
+                  <property name="text">
+                    <string>Open file</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="1" column="0">
+                <widget class="QLabel" name="desination_file_name_label">
+                  <property name="text">
+                   <string>Destination folder</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="1" column="1">
+                <widget class="QLineEdit" name="desination_file_name_edit">
+                  <property name="text">
+                    <string></string>
+                  </property>
+                </widget>
+              </item>
+              <item row="1" column="2">
+                <widget class="QPushButton" name="desination_file_name_button">
+                  <property name="text">
+                    <string>Choose folder</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="1" column="3">
+                <widget class="QPushButton" name="desination_save_file_button">
+                  <property name="text">
+                    <string>Save</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="2" column="0">
+                <widget class="QLabel" name="map_name_label">
+                  <property name="text">
+                   <string>Map name</string>
+                  </property>
+                </widget>
+              </item>
+              <item  row="2" column="1">
+                <widget class="QLineEdit" name="map_name_edit">
+                  <property name="text">
+                    <string></string>
+                  </property>
+                </widget>
+              </item>
+              <item row="3" column="0">
+                <widget class="QLabel" name="config_map_file_name_label">
+                  <property name="text">
+                   <string>Map config file</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="3" column="1">
+                <widget class="QLineEdit" name="config_map_file_name_edit">
+                  <property name="text">
+                    <string></string>
+                  </property>
+                </widget>
+              </item>
+              <item row="3" column="2">
+                <widget class="QPushButton" name="config_map_file_name_button">
+                  <property name="text">
+                    <string>Choose file</string>
+                  </property>
+                </widget>
+              </item>
+              <item row="3" column="3">
+                <widget class="QPushButton" name="config_map_save_file_button">
+                  <property name="text">
+                    <string>Save</string>
+                  </property>
+                </widget>
+              </item>
+              <item  row="4" column="0">
+                <!-- <item  row="4" column="0" colspan="2"> -->
+                <widget class="QListView" name="map_from_mapYaml_list">
+                </widget>
+              </item>
+            </layout>
           </item>
         </layout>
       </widget>
